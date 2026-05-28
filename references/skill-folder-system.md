@@ -17,38 +17,64 @@
    - `README.md` 面向维护者、安装者、复用者
 
 ---
-## 2. supporting folders 的层级
-1. 然后按复杂度再挂不同的 supporting folders：
+## 2. 4 supporting folders components
+1. 然后按职责分成四层；`supporting folders` 的意义不是把材料分类堆放，而是把 skill 的不同工作面拆开，避免所有内容都塞进 `SKILL.md`：
    - 配置层
-     - `agents/`
-       - 考虑了把 skill 适配到其他 agent/runtime
      - `config/`
-       - 存放配置层
+       - 存放这个 skill 运行时依赖的显式配置，而不是知识内容本身
+       - 用于集中管理默认参数、路径约定、模型路由、外部资源映射等可复用配置
+       - 里面应放：
+         - `.json`、`.yaml`、`.toml` 一类 config files
+         - preset definitions、routing tables、environment-specific mappings
    - 知识库
      - `references/`
-       - 知识库、整套设计理论
+       - 存放需要被反复引用的判断框架，而不是一次性的任务说明
+       - 用于承载复杂但相对稳定的知识，例如 taxonomy、design principles、writing rules、decision criteria、domain theory
+       - 里面应放：
+         - conceptual guides
+         - decision frameworks
+         - reusable rubrics、checklists、glossaries
      - `assets/`
-       - 不是执行必须。heavy 的资产
-       - 用来：
-         - 绘图结果示例、绘图结果代码（都可以分类）
-         - 展示装配之后的输出效果图
+       - 存放不适合写进 `SKILL.md` 或 `references/` 的重型素材
+       - 用于提供可被引用但不是每次执行都必须读取的 supporting materials
+       - 里面可以放：
+         - output screenshots、before/after samples、demo artifacts
+         - large prompt examples、image resources、reference datasets
    - 执行层
      - `scripts/`
+       - 存放需要稳定复用的可执行步骤，把 deterministic operations 从 prompt 里下沉出来
+       - 用于处理格式转换、批处理、抽取、校验、生成中间文件等可脚本化任务
+       - 里面应放：
+         - shell / python / node scripts
+         - parsing、transforming、validating、assembling 用的小工具
      - `mcp-server/`
-       - 工程化的体现
+       - 存放这个 skill 专属的 `MCP server`，把外部系统访问或多步工具操作封装成稳定接口
+       - 只有当 skill 需要长期复用的 tool surface、外部服务接入、或结构化 capability 时才需要
+       - 里面应放：
+         - `MCP server` source code
+         - tool schemas
+         - service adapters、auth wiring、local launch instructions
    - 质量控制
      - `evals/`
-       - 测试 skill 表现是否符合预期
-       - 可以是一个 `json` 文件里面放 `prompt` 和预期输出
+       - 存放可批量运行的 evaluation cases，用来检查 skill 输出是否持续满足预期
+       - 重点是 regression checking；不是完整叙事案例，而是可比较、可复跑的样本集
+       - 里面可以放：
+         - `json` / `yaml` eval sets
+         - `prompt`、expected traits、scoring rules、failure notes
      - `tests/`
-       - 比 `evals` 要 heavy，每一个 `md` 文件代表一个 case
+       - 存放更完整的 case-level test materials，用来覆盖 edge cases、failure modes、workflow branching
+       - 比 `evals/` 更重，因为它强调单个场景的上下文、步骤和判定标准
+       - 里面应放：
+         - one case per file 的 test docs
+         - setup、input、expected behavior、pass/fail criteria
      - `examples/`
-       - 比较长的 few-shot 样本存放地
-       - example 应至少包含：
-         - `example`
+       - 存放 few-shot examples，作用是教 skill 学会“怎么处理”，不是证明 skill “测过了”
+       - 适合保存长输入、代表性任务、目标响应风格
+       - 每个 example 至少应包含：
          - `input`
          - `expected handling`
          - `response style`
+         - 如有必要，再补 `example context` 或 `target output`
 
 ---
 ## 3. 固定流水线
@@ -78,21 +104,29 @@
      - output 怎样被约束
 
 ---
-## 4. 各层的推荐职责边界
-1. `SKILL.md`
-   - 负责总控
-   - 不负责承载全部细节知识
-2. `references/`
-   - 负责承载复杂判断、taxonomy、policy、theory、tone、section architecture
-3. `scripts/` / `mcp-server/`
-   - 负责真实执行、格式转换、multi-step deterministic operations
-4. `config/`
-   - 负责 runtime configuration、adapter data、external linkage
-5. `examples/` / `tests/` / `evals/`
-   - 负责稳定性与质量控制，但侧重点不同：
-     - `examples/`：few-shot demonstration
-     - `tests/`：case coverage
-     - `evals/`：regression and automated checking
+## 4. 各层更适合在什么情况下出现
+1. 不要把 `supporting folders` 当成固定模板；判断标准不是“目录是否完整”，而是这个 skill 是否真的出现了对应职责：
+   - 只有 prompt 就能稳定完成的 skill
+     - 通常只需要 `SKILL.md`，最多再加少量 `references/`
+   - 出现可复用参数、跨 runtime 适配、外部资源映射
+     - 再引入配置层，例如 `config/`、`agents/`
+   - 出现大量稳定知识，已经不适合继续堆在主 prompt 里
+     - 再引入知识库层，例如 `references/`，必要时补 `assets/`
+   - 出现可脚本化、可工具化、需要稳定复用的操作
+     - 再引入执行层，例如 `scripts/` 或 `mcp-server/`
+   - 出现回归风险、边界场景增多、需要验证 skill 是否退化
+     - 再引入质量控制层，例如 `evals/`、`tests/`、`examples/`
+2. 一个简单判断法是看某段内容到底属于哪种职责：
+   - 如果它定义的是行为总控、trigger、workflow、output contract
+     - 放在 `SKILL.md`
+   - 如果它提供的是长期稳定的判断依据
+     - 放在 `references/`
+   - 如果它提供的是运行参数或环境映射
+     - 放在 `config/` 或 `agents/`
+   - 如果它承担的是实际执行步骤
+     - 放在 `scripts/` 或 `mcp-server/`
+   - 如果它用来演示、覆盖或检验输出质量
+     - 放在 `examples/`、`tests/`、`evals/`
 
 ---
 ## 5. 如何用这份 reference
