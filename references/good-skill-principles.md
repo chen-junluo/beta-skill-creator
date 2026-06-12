@@ -103,25 +103,53 @@
 ---
 ## 7. 第七原则：`examples`、`tests`、`evals` 至少选一个
 1. 最佳组合：
-   - `examples/` 给 few-shot
-   - `tests/` 给 case coverage
-   - `evals/` 给自动回归
-2. 如果只能选一个：
+   - `examples/` 负责教模型“应该怎样处理”，本质是 few-shot demonstration
+     - 它强调：
+       - 代表性输入长什么样
+       - 理想处理路径是什么
+       - 回答风格、结构、颗粒度应该如何呈现
+     - 它更像 teaching material，不是 pass/fail harness
+   - `tests/` 负责覆盖“哪些场景必须处理对”，本质是 case coverage
+     - 它强调：
+       - 边界条件
+       - 分支判断
+       - 常见失败模式
+       - 每个 case 的 expected behavior 与判定标准
+     - 它更像 scenario-based spec，不是 few-shot，也不一定可自动运行
+   - `evals/` 负责检查“这项能力有没有退化”，本质是 automated regression surface
+     - 它强调：
+       - 一组可重复运行的 prompt / input set
+       - 可比较的 expected traits 或 scoring rules
+       - 版本之间是否变好、变差、或出现回归
+     - 它更像 benchmark / regression harness，不承载长篇上下文教学
+2. 三者的边界：
+   - `examples/` 解决的是：
+     - “模型该怎么做”
+     - 不解决：
+       - 系统性覆盖 edge cases
+       - 稳定回归比较
+   - `tests/` 解决的是：
+     - “哪些情形必须过关，失败会怎么失败”
+     - 不解决：
+       - 教模型形成统一文风
+       - 大规模自动跑分
+   - `evals/` 解决的是：
+     - “改完之后整体表现有没有退化，哪些维度波动了”
+     - 不解决：
+       - 细致解释单个案例背后的处理思路
+       - 替代完整的 few-shot example 或 test spec
+3. 如果只能选一个：
    - reasoning-heavy skill 先选 `tests/`
+     - 因为这类 skill 最怕 decision boundary 不稳，先把 case coverage 立住
    - output-style skill 先选 `examples/`
-   - platform/product skill 先选 `evals/`
-3. 如何落地：
-   - 不一定三个都做
-   - 但至少挑一种质量控制机制，不要完全裸奔
-
----
-## 8. 第八原则：`README` 不是可有可无
-1. 这里做得好的 skill 基本都有 `README.md`。
-2. `README.md` 的作用不是重复 `SKILL.md`，而是：
-   - 给人类维护者看
-   - 解释 file structure
-   - 说明 design intent
-   - 说明安装和适配方法
-3. 如何落地：
-   - 把 `README.md` 当作维护文档，而不是 prompt 的副本
-   - 写清楚目录作用、依赖关系、适配方式
+     - 因为这类 skill 最怕风格漂移、结构失真，先把 exemplar 写清楚
+   - platform / product / workflow skill 先选 `evals/`
+     - 因为这类 skill 最怕迭代后 regression，先建立可重复比较的检查面
+4. 如何落地：
+   - 不一定三个都做，但至少挑一种质量控制机制，不要完全裸奔
+   - 一个简单顺序是：
+     1. 先用 `examples/` 教会目标行为
+     2. 再用 `tests/` 补关键 edge cases
+     3. 最后用 `evals/` 把高频能力做成可回归检查
+   - 当 repo 还很早期：
+     - 先选最能解决当前主要风险的那一种，而不是为了“目录完整”三种都建空壳

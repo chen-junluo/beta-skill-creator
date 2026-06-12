@@ -61,12 +61,16 @@
        - 里面可以放：
          - `json` / `yaml` eval sets
          - `prompt`、expected traits、scoring rules、failure notes
+       - 可参考 exemplar：
+         - [example-eval.md](example-eval.md)
      - `tests/`
        - 存放更完整的 case-level test materials，用来覆盖 edge cases、failure modes、workflow branching
        - 比 `evals/` 更重，因为它强调单个场景的上下文、步骤和判定标准
        - 里面应放：
          - one case per file 的 test docs
          - setup、input、expected behavior、pass/fail criteria
+       - 可参考 exemplar：
+         - [example-test.md](example-test.md)
      - `examples/`
        - 存放 few-shot examples，作用是教 skill 学会“怎么处理”，不是证明 skill “测过了”
        - 适合保存长输入、代表性任务、目标响应风格
@@ -75,6 +79,8 @@
          - `expected handling`
          - `response style`
          - 如有必要，再补 `example context` 或 `target output`
+       - 可参考 exemplar：
+         - [example-example.md](example-example.md)
 
 ---
 ## 3. 固定流水线
